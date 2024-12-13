@@ -1,0 +1,2 @@
+/usr/bin/ar qc libantaralib.a CMakeFiles/antaralib.dir/core/Antara.cpp.o CMakeFiles/antaralib.dir/core/antara_serial.cpp.o CMakeFiles/antaralib.dir/core/antara_serialization.cpp.o CMakeFiles/antaralib.dir/core/antara_tcp.cpp.o CMakeFiles/antaralib.dir/core/antara_udp.cpp.o CMakeFiles/antaralib.dir/core/base64.cpp.o CMakeFiles/antaralib.dir/core/crc32.cpp.o
+/usr/bin/ranlib libantaralib.a
