@@ -1,5 +1,0 @@
-/usr/local/lib/cmake/ANTARA/antara-config.cmake
-/usr/local/include/ANTARA/Antara.h
-/usr/local/lib/libantaralib.a
-/usr/local/lib/cmake/ANTARA/antara-targets.cmake
-/usr/local/lib/cmake/ANTARA/antara-targets-noconfig.cmake
