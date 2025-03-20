@@ -8,6 +8,8 @@
 inline std::vector<std::uint8_t> Antara::Deserialization(std::vector<std::uint8_t> &msgIn)
 {
 
+    std::vector<std::uint8_t> payloadOut = {1, 1};
+
     // Check operation mode
     std::uint8_t mode = msgIn[0] & 0xC;
     if ((mode == REAL_TIME) || (mode == RELIABLE))
@@ -16,7 +18,7 @@ inline std::vector<std::uint8_t> Antara::Deserialization(std::vector<std::uint8_
         {
             if (msgIn[1 + i] != this->ID[i])
             {
-                return;
+                return payloadOut;
             }
         }
     }
@@ -25,7 +27,7 @@ inline std::vector<std::uint8_t> Antara::Deserialization(std::vector<std::uint8_
     {
         if (msgIn[1] != this->ID[0])
         {
-            return;
+            return payloadOut;
         }
     }
 
@@ -37,11 +39,11 @@ inline std::vector<std::uint8_t> Antara::Deserialization(std::vector<std::uint8_
     {
         if (msgIn[msgIn.size() - 4 + i] != (crc & ((0xFF) << 8 * (3 - i))))
         {
-            return;
+            return payloadOut;
         }
     }
 
-    std::vector<std::uint8_t> payloadOut = {msgIn[6], msgIn[7]};
+    payloadOut = {msgIn[6], msgIn[7]};
 
     for (std::size_t i = 0; i < msgIn[7]; i++)
     {

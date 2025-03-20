@@ -1,9 +1,0 @@
-[submodule "external/mbedtls"]
-	path = external/mbedtls
-	url = https://github.com/Mbed-TLS/mbedtls.git
-[submodule "lib/cxxopts"]
-	path = lib/cxxopts
-	url = https://github.com/jarro2783/cxxopts.git
-[submodule "lib/libusb"]
-	path = lib/libusb
-	url = https://github.com/libusb/libusb.git

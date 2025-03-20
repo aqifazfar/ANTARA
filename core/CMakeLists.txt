@@ -1,12 +1,12 @@
 
 target_include_directories(antaralib PUBLIC  
-    					   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
-    					   $<INSTALL_INTERFACE:include>)
+    			   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+    			   $<INSTALL_INTERFACE:include>)
 
 target_sources(antaralib PRIVATE
-				\serialization.cpp
-				deserialization.cpp
-				crc32.cpp)
+		serialization.cpp
+		deserialization.cpp
+		crc32.h)
 
 install(FILES "include/ANTARA/Antara.h" 
 DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ANTARA")
@@ -24,3 +24,4 @@ install(EXPORT antara-targets
         FILE antara-targets.cmake
         NAMESPACE ANTARA::
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ANTARA")
+
