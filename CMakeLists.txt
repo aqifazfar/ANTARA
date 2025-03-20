@@ -19,7 +19,7 @@ else()
 endif()
 
 add_subdirectory(core)
-
+add_subdirectory(core/antara-cli)
 
 if(BUILD_TESTS)
   add_subdirectory(tests)
