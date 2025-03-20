@@ -32,4 +32,8 @@
 *.app
 
 /.vscode
+<<<<<<< HEAD
 /build
+=======
+/build
+>>>>>>> 419e512903bc970304f0608dcd4b35f1f9c409dc
