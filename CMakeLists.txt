@@ -20,6 +20,6 @@ endif()
 
 add_subdirectory(core)
 
-if(BUILD_TEST)
+if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()

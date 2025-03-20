@@ -1,0 +1,38 @@
+#include <cstdint>
+#include <vector>
+
+#define VEHICLE 0
+#define GCS 1
+class Antara
+{
+
+private:
+    // This vehicle ID
+    std::uint8_t ID[4] = {};
+    std::uint8_t sequenceNumber;
+    std::uint32_t keySign;
+
+    enum Mode
+    {
+
+        REAL_TIME,
+        RELIABLE,
+        MULTICAST,
+        UNICAST
+    };
+
+public:
+    Antara(std::uint8_t const groupID, std::uint8_t const systemID, std::uint8_t const nodeID, std::uint8_t const componentID, std::uint32_t keySignature = 0)
+    {
+        ID[0] = groupID;
+        ID[1] = systemID;
+        ID[2] = nodeID;
+        ID[3] = componentID;
+        sequenceNumber = 1;
+        keySign = keySignature;
+    }
+
+    inline std::vector<std::uint8_t> Serialization(std::uint8_t const controlFlags, std::uint8_t const (&ID)[4], std::uint8_t const messageID, std::vector<uint8_t> &payload);
+
+    inline std::vector<std::uint8_t> Deserialization(std::vector<std::uint8_t> &messageIn);
+};

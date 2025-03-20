@@ -17,7 +17,6 @@ enum VehicleTypes
 
 typedef enum
 {
-
 	_2D_4_CONFIG,
 	_2D_6_CONFIG,
 	_3D_6_CONFIG,

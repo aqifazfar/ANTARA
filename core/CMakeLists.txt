@@ -4,12 +4,8 @@ target_include_directories(antaralib PUBLIC
     					   $<INSTALL_INTERFACE:include>)
 
 target_sources(antaralib PRIVATE
-				Antara.cpp	 
-				antara_serial.cpp
-				antara_serialization.cpp 
-				antara_tcp.cpp
-				antara_udp.cpp
-			    base64.cpp
+				\serialization.cpp
+				deserialization.cpp
 				crc32.cpp)
 
 install(FILES "include/ANTARA/Antara.h" 
