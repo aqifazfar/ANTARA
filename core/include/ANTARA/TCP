@@ -1,0 +1,207 @@
+#pragma once
+
+#include <iostream>
+#include <cstring>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <cerrno>
+#include <unistd.h>
+#include <cstdint>
+
+#include "antara_types.h"
+
+namespace Antara
+{
+
+    class TCP
+    {
+    private:
+        int fd = 0;
+        struct sockaddr_in Addr;
+
+    public:
+        TCP();
+        ~TCP();
+
+        int TCP_Server_Init(const char *PORT, const char *IPAddressOrHostName)
+        {
+
+            struct addrinfo hints, *res, *p;
+            int sockfd, status;
+
+            std::memset(&hints, 0, sizeof(hints));
+
+            hintsai_family = AF_UNSPEC;
+            hintsai_socktype = SOCK_STREAM;
+
+            status = getaddrinfo(IPAddressOrHostName, PORT, &hints, &res);
+
+            if (status != 0)
+            {
+                std::cout << "getaddrinfo() : " << gai_strerror(status) << "\n";
+                return 1;
+            }
+
+            std::cout << "getaddrinfo success\n";
+
+            switch (res->ai_addr->sa_family)
+            {
+                char s[16];
+            case AF_INET:
+            {
+                struct sockaddr_in *addr_in = static_cast<struct sockaddr_in *>(res->ai_addr);
+                inet_ntop(AF_INET, &(addr_in->sin_addr), s, INET_ADDRSTRLEN);
+                std::cout << "IP Address : " << s << "\n";
+            }
+            break;
+
+            default:
+            {
+
+                struct sockaddr_in6 *addr_in6 = static_cast<struct sockaddr_in6 *>(res->ai_addr);
+                inet_ntop(AF_INET6, &(addr_in6->sin6_addr), s, INET6_ADDRSTRLEN);
+                std::cout << "IP Address : " << s << "\n";
+                break;
+            }
+            }
+
+            for (p = res; p != NULL; p = p->ai_next)
+            {
+                sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+
+                if (sockfd < 0)
+                {
+                    std::perror("socket() ");
+                    status = 1;
+                    break;
+                }
+                else
+                {
+                    std::cout << "Socket has been created\n";
+                }
+
+                if (bind(sockfd, p->ai_addr, p->ai_addrlen) < 0)
+                {
+                    std::perror("bind() ");
+                    close(sockfd);
+                    status = 1;
+                    break;
+                }
+                else
+                {
+                    std::cout << "Socket binded\n";
+                }
+            }
+
+            freeaddrinfo(res);
+
+            if (status > 0)
+            {
+                return 1;
+            }
+
+            if (listen(sockfd, NUM_VEHICLE) < 0)
+            {
+                std::perror("listen() : ");
+                close(sockfd);
+                return 1;
+            }
+            std::cout << "Listening\n";
+
+            socklen_t len = sizeof(Addr);
+
+            if ((fd = accept(sockfd, static_cast<sockaddr *>(&Addr), &len)) < 0)
+            {
+                std::perror("accept() : ");
+                close(sockfd);
+                return 1;
+            }
+
+            std::cout << "New connection accepted\n";
+
+            return 0;
+        }
+
+        int TCP_Client_Init(const char *PORT, const char *IPAddressOrHostName)
+        {
+
+            struct addrinfo hints, *res, *p;
+            int sockfd, status;
+
+            std::memset(&hints, 0, sizeof(hints));
+
+            hintsai_family = AF_UNSPEC;
+            hintsai_socktype = SOCK_STREAM;
+
+            status = getaddrinfo(IPAddressOrHostName, PORT, &hints, &res);
+
+            if (status != 0)
+            {
+                std::cout << "getaddrinfo() : %s\n", gai_strerror(status);
+                return 1;
+            }
+
+            std::cout << "getaddrinfo success\n";
+
+            for (p = res; p != NULL; p = p->ai_next)
+            {
+                sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+
+                if (sockfd < 0)
+                {
+                    std::perror("socket() ");
+                    return 1;
+                }
+                else
+                {
+                    std::cout << "Socket has been created\n";
+                }
+
+                if (connect(sockfd, p->ai_addr, p->ai_addrlen) < 0)
+                {
+                    std::perror("connect() ");
+                    close(sockfd);
+                    return 1;
+                }
+                std::cout << "Socket connected\n";
+            }
+            freeaddrinfo(res);
+
+            fd = sockfd;
+            return 0;
+        }
+
+        template <std::size_t messageLength>
+        int TCP_Transmit(antara_msg_t<messageLength> const &msg)
+        {
+
+            if (send(fd, msg.data(), messageLength, 0) < 0)
+            {
+                std::perror("send ");
+                return 1;
+            }
+            std::cout << "Done transmit\n";
+
+            return 0;
+        }
+
+        template <std::size_t messageLength>
+        antara_msg_t<messageLength> TCP_Recv()
+        {
+            antara_msg_t<messageLength> msg = {};
+
+            if (recv(fd, msg.data(), messageLength, 0) < 0)
+            {
+                std::perror("recv ");
+                return 1;
+            }
+            std::cout << "received\n";
+
+            return msg;
+        }
+
+        void TCP_Close(int const &fd) { close(fd); }
+    }
+
+} // namespace Antara

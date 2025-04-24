@@ -1,0 +1,58 @@
+#pragma once
+
+#include <iostream>
+
+template <typename T, std::size_t capacity>
+class Queue
+{
+private:
+    T queue[capacity] = {};
+    std::size_t enqueueIndex = 0;
+    std::size_t dequeueIndex = 0;
+    std::size_t nElements = 0;
+
+public:
+    Queue() {}
+    ~Queue() {}
+
+    bool isEmpty()
+    {
+        return nElements == 0;
+    }
+
+    bool isFull()
+    {
+        return nElements == capacity;
+    }
+
+    void enqueue(T const &x)
+    {
+        if (isFull())
+        {
+            std::cout << "Queue is full.\n";
+            return;
+        }
+
+        queue[enqueueIndex] = x;
+
+        enqueueIndex = (enqueueIndex + 1) % capacity;
+        nElements++;
+    }
+
+    T dequeue()
+    {
+        if (isEmpty())
+        {
+            std::cout << "Queue is empty.\n";
+            return {};
+        }
+
+        T out = queue[dequeueIndex];
+
+        queue[dequeueIndex] = {};
+
+        dequeueIndex = (dequeueIndex + 1) % capacity;
+        nElements--;
+        return out;
+    }
+};

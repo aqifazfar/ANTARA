@@ -1,0 +1,19 @@
+#pragma once
+
+#include "../serialization.h"
+#include "../deserialization.h"
+#include "../antara_base.h"
+
+class Antara
+{
+
+private:
+    ConcreteMediator<Serialization, Deserialization> mediator;
+
+public:
+    Antara()
+    {
+        mediator.Set_Colleague1(Serialization::Get_Instance());
+        mediator.Set_Colleague2(Deserialization::Get_Instance());
+    }
+};

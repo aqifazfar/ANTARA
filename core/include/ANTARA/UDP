@@ -1,0 +1,162 @@
+#pragma once
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+#include <cstdint>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+
+#include "antara_types.h"
+
+struct sockaddr_storage Addr;
+struct addrinfo *p;
+
+namespace Antara
+{
+    class UDP
+    {
+    private:
+        int fd = 0;
+
+    public:
+        UDP();
+        ~UDP();
+
+        int UDP_Server_Init(const char *port, const char *IPAddressOrHostName)
+        {
+            struct addrinfo hints, *res;
+            int status = 0;
+
+            std::memset(&hints, 0, sizeof(hints));
+
+            hints.ai_family = AF_UNSPEC;
+            hints.ai_socktype = SOCK_DGRAM;
+
+            status = getaddrinfo(IPAddressOrHostName, port, &hints, &res);
+
+            if (status != 0)
+            {
+                std::cout << "getaddrinfo() : %s\n", gai_strerror(status);
+                return 1;
+            }
+
+            std::cout << "getaddrinfo success\n";
+
+            for (p = res; p != NULL; p = p->ai_next)
+            {
+                fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+
+                if (fd < 0)
+                {
+                    std::perror("socket() ");
+                    return 1;
+                }
+                else
+                {
+                    std::cout << "Socket has been created\n";
+                }
+
+                if (bind(fd, p->ai_addr, p->ai_addrlen) < 0)
+                {
+                    std::perror("bind() ");
+                    close(fd);
+                    return 1;
+                }
+                else
+                {
+                    std::cout << "Socket binded\n";
+                }
+            }
+
+            freeaddrinfo(res);
+
+            return 0;
+        }
+
+        int UDP_Client_Init(const char *port, const char *IPAddressOrHostName)
+        {
+
+            struct addrinfo hints, *res;
+            int status;
+
+            std::memset(&hints, 0, sizeof(hints));
+
+            hints.ai_family = AF_UNSPEC;
+            hints.ai_socktype = SOCK_DGRAM;
+
+            status = getaddrinfo(IPAddressOrHostName, port, &hints, &res);
+
+            if (status != 0)
+            {
+                std::cout << "getaddrinfo() : %s\n", gai_strerror(status);
+                return 1;
+            }
+
+            std::cout << "getaddrinfo success\n";
+
+            for (p = res; p != NULL; p = p->ai_next)
+            {
+                fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+
+                if (fd < 0)
+                {
+                    std::perror("socket() ");
+                    return 1;
+                }
+                else
+                {
+                    std::cout << "Socket has been created\n";
+                }
+
+                if (connect(fd, p->ai_addr, p->ai_addrlen) < 0)
+                {
+                    std::perror("connect() : ");
+                    close(fd);
+                    return 1;
+                }
+
+                std::cout << "Socket connected\n";
+            }
+
+            freeaddrinfo(res);
+
+            return 0;
+        }
+
+        template <std::size_t messageLength>
+        int UDP_Transmit(antara_msg_t<messageLength> const &messageOut)
+        {
+            if (sendto(fd, messageOut, messageLength, 0, p->ai_addr, p->ai_addrlen) < 0)
+            {
+                std::perror("sendto() ");
+                return 1;
+            }
+
+            std::cout << "Done Transmit\n";
+
+            return 0;
+        }
+        template <std::size_t messageLength>
+        antara_msg_t<messageLength> UDP_Recv()
+        {
+            antara_msg_t<messageLength> msg = {};
+
+            socklen_t len;
+            len = sizeof(Addr);
+
+            if (recvfrom(fd, msg, messageLength, 0, static_cast<struct sockaddr *>(&Addr), &len) < 0)
+            {
+                std::perror("recvfrom() ");
+                return 1;
+            }
+
+            std::cout << "Received\n";
+
+            return msg;
+        }
+    }
+
+} // namespace Antara
