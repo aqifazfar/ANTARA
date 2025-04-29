@@ -5,7 +5,8 @@
 #include <iostream>
 #include <atomic>
 
-#include "antara_types.h"
+#include "ANTARA/antara_types.h"
+#include "ANTARA/antara_version.h"
 #include "crc32.h"
 #include "sha256.h"
 
@@ -19,31 +20,23 @@ class Serialization
 {
 
 private:
-    Serialization() = default;
-    ~Serialization() = default;
-
-private:
-    inline static std::atomic<std::uint32_t> sequence_number = 1;
+    std::atomic<std::uint32_t> sequence_number = 1;
 
 public:
-    static Serialization &Get_Instance()
-    {
-        static Serialization instance;
-        return instance;
-    }
-
-    inline static std::uint8_t Get_Current_Sequence()
-    {
-        return sequence_number;
-    }
+    Serialization() {};
+    ~Serialization() {};
+    // inline std::uint8_t Get_Current_Sequence()
+    // {
+    //     return sequence_number;
+    // }
 
     template <std::size_t messageLength>
-    inline static antara_msg_t<messageLength> Serialize(std::uint8_t controlFlags, std::uint32_t groupID, std::uint32_t systemID, antara_payload_t const &payload)
+    inline antara_msg_t<messageLength> Serialize(std::uint8_t controlFlags, std::uint32_t groupID, std::uint32_t systemID, antara_payload_t const &payload)
     {
 
         antara_msg_t<messageLength> output;
 
-        output[0] = controlFlags;
+        output[0] = PROTOCOL_VERSION << 4 | controlFlags;
 
         WORD_TO_ARRAY(output, groupID, 1);
         WORD_TO_ARRAY(output, systemID, 5);
@@ -69,7 +62,7 @@ public:
             std::uint32_t hash[8];
             std::uint16_t index = 19 + payload.length;
 
-            sha256<messageLength - 32>(hash, output.msg);
+            sha256(hash, output.msg, messageLength - 32);
 
             for (std::size_t i = 0; i < 8; i++)
             {

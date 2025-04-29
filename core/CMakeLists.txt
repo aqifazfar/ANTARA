@@ -4,8 +4,6 @@ target_include_directories(antaralib PUBLIC
     			   $<INSTALL_INTERFACE:include>)
 
 target_sources(antaralib PRIVATE
-                antara_base.h
-                antara_queue.h
 		serialization.h
 		deserialization.h
 		crc32.h)

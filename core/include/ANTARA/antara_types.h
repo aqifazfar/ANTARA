@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include "antara_version.h"
+
 enum antara_control_flags
 {
 
@@ -11,11 +13,14 @@ enum antara_control_flags
     NACK = 0x8,
     ACK = 0x0C,
     FINISH = 0x30,
-    REALTIME_MODE = 0x00,
-    RELIABLE_MODE = 0x40,
-    PUB_SUB = 0x00,
-    C2 = 0x80,
 
+};
+
+enum antara_mode
+{
+    UNICAST = 0x00,
+    MULTICAST = 0x80,
+    BROADCAST = 0x00,
 };
 
 enum antara_error_flags
@@ -47,7 +52,8 @@ struct antara_msg_t
         std::uint16_t messageID = (in[12] << 8) | in[13];
         std::uint32_t crc = (in[15 + in[14]] << 24) | (in[15 + in[14] + 1] << 16) | (in[15 + in[14] + 2] << 8) | in[15 + in[14] + 3];
 
-        output << "Control Flags: " << static_cast<std::uint32_t>(in[0]) << "\n";
+        output << "Protocol Version: " << version[1 - (in[0] >> 4)] << "\n";
+        output << "Control Flags: " << static_cast<std::uint32_t>(in[0] & 0xFF) << "\n";
         output << "Group ID: " << groupID << "\n";
         output << "System ID: " << systemID << "\n";
         output << "Sequence Number: " << static_cast<std::uint32_t>(in[9]) << "\n";

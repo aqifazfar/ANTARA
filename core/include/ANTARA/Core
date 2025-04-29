@@ -1,19 +1,85 @@
 #pragma once
 
-#include "../serialization.h"
-#include "../deserialization.h"
-#include "../antara_base.h"
+#include "../../serialization.h"
+#include "../../deserialization.h"
+#include "antara_types.h"
 
-class Antara
+namespace Antara
 {
-
-private:
-    ConcreteMediator<Serialization, Deserialization> mediator;
-
-public:
-    Antara()
+    class Core
     {
-        mediator.Set_Colleague1(Serialization::Get_Instance());
-        mediator.Set_Colleague2(Deserialization::Get_Instance());
+
+    private:
+        Serialization serializer;
+        Deserialization deserializer;
+        std::uint32_t group_ID = 0;
+        std::uint32_t system_ID = 0;
+        std::uint32_t target_group_ID = 0;
+        std::uint32_t target_system_ID = 0;
+        int status = 0;
+        int subs_msg_ID = 0;
+        antara_mode mode = UNICAST;
+
+        Core() = default;
+        ~Core() = default;
+
+    public:
+        inline static Core &Get_Instance()
+        {
+            static Core instance;
+
+            return instance;
+        }
+
+        inline void Set_Target_ID(std::uint32_t const &targetGroupID, std::uint32_t const &targetSystemID)
+        {
+            target_group_ID = targetGroupID;
+            target_system_ID = targetSystemID;
+        };
+
+        inline void Set_Device_ID(std::uint32_t const &groupID, std::uint32_t const &systemID)
+        {
+
+            group_ID = groupID;
+            system_ID = systemID;
+        }
+
+        template <std::uint16_t messageLength>
+        inline antara_msg_t<messageLength> Pack(std::uint8_t const &controlFlags, antara_payload_t const &payload)
+        {
+            return serializer.Serialize<messageLength>(controlFlags, group_ID, system_ID, payload);
+        }
+
+        template <std::uint16_t messageLength>
+        inline antara_payload_t Unpack(antara_msg_t<messageLength> msgIn)
+        {
+            antara_payload_t output;
+
+            int stat = deserializer.Deserialize(target_group_ID, target_system_ID, mode, subs_msg_ID, output, msgIn);
+
+            status = stat;
+
+            return output;
+        }
+
+        inline void Subs_Message(antara_mode recvMode, std::uint16_t messageID)
+        {
+            mode = recvMode;
+            subs_msg_ID = messageID;
+        }
+
+        inline int Get_status()
+        {
+            return status;
+        }
+
+        Core &operator=(Core const &) = delete;
+        Core(Core const &) = delete;
+        Core(Core const &&) = delete;
+    };
+
+    void Antara_Init()
+    {
+        Core::Get_Instance();
     }
-};
+}

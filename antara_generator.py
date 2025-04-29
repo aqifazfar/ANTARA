@@ -6,49 +6,50 @@ data_types = {'uint8_t': 1 , 'uint16_t' : 2 , 'uint32_t' : 4, 'uint64_t' : 8,
               'float' : 4, 'double' : 8}
 
 
-def generate_message_class(messageName:str,controlFlags:str,nodeID:int,componentID:int,messageID:int,length:int,field:list):
+def generate_enum(messageName:str, enum:list):
+    code = f"enum {messageName}" + "{\n"
+    for i in enum:
+        code += f"{str(i[0]).upper()} = {i[1]},\n"
+    
+    code += "}\n\n"
+
+    return code
+
+def generate_message_function(messageName:str,controlFlags:str,nodeID:int,componentID:int,messageID:int,length:int,field:list):
 
     message_length = 15 + length + 4 + 32 if 'SIGNATURE_EXTENSION' in controlFlags else 0
 
     def generate_pack_function():
 
-        code = f"\tinline static antara_msg_t<{message_length}> Pack(std::uint32_t const &groupID, std::uint32_t const &systemID, std::uint8_t const (&data)[{length}]" + ")\n\t{\n"
-        code += f"\t\tantara_msg_t<{message_length}> output =" + " {};\n"
-        code += f"\t\tantara_payload_t payload = {{{nodeID},{componentID},{messageID},{length}"
+        code = f"inline antara_msg_t<{message_length}> {messageName}_pack(std::uint8_t const (&data)[{length}]" + ")\n{\n"
+        code += f"\tantara_msg_t<{message_length}> output;\n"
+        code += f"\tantara_payload_t payload = {{{nodeID},{componentID},{messageID},{length}"
         code += ",{"
 
         for i in range(length):
             code += f"data[{i}],"
         
         code =  code[:-1] + "}};\n\n"
-        code += f"\t\toutput = Serialization::Serialize<{message_length}>({controlFlags}, groupID, systemID, payload);\n\n"
-        code += "\t\t// To track the sequence for reliable mode\n"
-        code += "\t\tcurrentSequence = Serialization::Get_Instance().Get_Current_Sequence();\n"
-        code += "\n\t\treturn output;\n\t}\n"
+        code += f"\toutput = Antara::Core::Get_Instance().Pack<{message_length}>({controlFlags}, payload);\n"
+        code += "\n\treturn output;\n}\n"
 
         return code
 
     def generate_unpack_function():
 
-        code = f"\tinline static int Unpack(std::uint32_t const &groupID, std::uint32_t const &systemID, antara_payload_t &output, antara_msg_t<{message_length}> const &msgIn" +")\n\t{\n"
-        code += f"\t\tint status = Deserialization::Deserialize<{message_length}>(groupID,systemID,output,msgIn);\n"
-        code += "\n\t\treturn status;"
-        code += "\n\t}\n"
+        code = f"inline antara_payload_t {messageName}_unpack(antara_msg_t<{message_length}> const &msgIn" +")\n{\n"
+        code += f"\tantara_payload_t output = Antara::Core::Get_Instance().Unpack<{message_length}>(msgIn);\n"
+        code += "\n\treturn output;"
+        code += "\n}\n"
 
         return code
         
         pass
 
-    code = f"class {messageName}\n" + "{\n\n"
-    code += f"private:\n"
-    code += f"\tinline static std::uint8_t currentSequence = 0;\n\n"
-    code +="public:\n"
-
-    code += generate_pack_function()
+    code = generate_pack_function()
     code += "\n"
     code += generate_unpack_function()
-
-    code += "};\n\n"
+    code += "\n"
 
     return code
 
@@ -70,18 +71,6 @@ def parse(dialect_file):
 
     field = [fld.attrib for fld in root.findall('./message/payload/field')]
 
-    enum_entry = [entry.attrib for entry in root.findall('./message/enum/entry')]
-
-    entry_description = [entry.text for entry in root.findall('./message/enum/entry')]
-
-    for i in range(len(root.findall('./message/enum'))):
-
-        enums.append([])
-        for j in range(i+1):
-            enums[i].append(enum_entry[j]['name'])
-            enums[i].append(enum_entry[j]['value'])
-            enums[i].append(entry_description[j])
-
     for i in range(n_message):
         
         messages.append([])
@@ -101,9 +90,20 @@ def parse(dialect_file):
             messages[i][7+j].append(field[j].get('type'))
             messages[i][7+j].append(field[j].get('value'))
 
-    return (messages, enums, description)
+        enum_entry = [entry.attrib for entry in root.findall(f"./message[@name = '{messages[i][0]}']/enum/entry")]
 
+        enums.append([])
+        k=0
+        for j in enum_entry:
+            enums[i].append([])
+            enums[i][k].append(j['name'])
+            enums[i][k].append(j['value'])
+            k+=1
         
+        
+
+
+    return (messages, enums)
 
 def main(dialect_file:str, output_file:str = ''):
 
@@ -117,12 +117,23 @@ def main(dialect_file:str, output_file:str = ''):
     code += f"#include \"Antara/Core\"\n\n"
 
 
-    msgs,enums,descs = parse(dialect_file)
+    msgs,enums = parse(dialect_file)
 
+    k=0
+    for msg in msgs:
+        code += generate_enum(msg[0],enums[k])
+        k+=1
+
+
+    
     for msg in msgs:
        
         msg_name = msg[0]
-        msg_cflags = msg[1][0] + ' | ' + msg[1][1] + ' | ' + msg[2]
+
+        msg_cflags = msg[2]
+        for i in msg[1]:
+            msg_cflags += i 
+
         node_id = int(msg[3])
         component_id = int(msg[4])
         msg_id = int(msg[5])
@@ -137,7 +148,10 @@ def main(dialect_file:str, output_file:str = ''):
         for i in range(n_field):
             data.append(msg[7+i])
         
-        code += generate_message_class(msg_name,msg_cflags,node_id,component_id,msg_id,data_length,data)
+    
+        code += generate_message_function(msg_name,msg_cflags,node_id,component_id,msg_id,data_length,data)
+        
+
     
     print(code)
 

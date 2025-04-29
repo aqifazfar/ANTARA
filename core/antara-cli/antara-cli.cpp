@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
                 ID.push_back(static_cast<std::uint8_t>(val));
             }
 
-            std::cout << "Group     ID : " << std::to_string(ID[0]) << "\nSystem    ID : " << std::to_string(ID[1]) << "\nNode      ID : " << std::to_string(ID[2]) << "\nComponent ID : " << std::to_string(ID[3]) << "\n";
+            std::cout << "Group     ID : " << std::to_string(ID[0]) << "\nSystem    ID : " << std::to_string(ID[1]);
             return 0;
         }
 

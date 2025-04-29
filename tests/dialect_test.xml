@@ -17,12 +17,26 @@ tags meanings
 
 
 <antara>
-    <message name = "heartbeat" mode = "RELIABLE_MODE,PUB_SUB" extension = "SIGNATURE_EXTENSION" nodeID = "10" componentID = "200">
-        <enum num = "5">
-            <entry name = "haha" value = "1">Hello Message</entry>
-
+    <message name = "heartbeat" mode = "UNICAST" extension = "SIGNATURE_EXTENSION" nodeID = "10" componentID = "200">
+        <enum>
+            <entry name = "haha" value = "1"></entry>
+            <entry name = "res" value = "2"></entry>
+            <entry name = "bah" value = "3"></entry>
         </enum>
         <payload msgID = "1" length = "2">
+            <field name = "a" type = "int32_t" ></field>
+            <field name = "timestamp" type = "float"></field>
+
+        </payload>
+    </message>
+
+    <message name = "control" mode = "UNICAST" extension = "" nodeID = "150" componentID = "255">
+        <enum>
+            <entry name = "fly" value = "1"></entry>
+            <entry name = "land" value = "2"></entry>
+            <entry name = "accelerate" value = "3"></entry>
+        </enum>
+        <payload msgID = "30" length = "2">
             <field name = "a" type = "int32_t" ></field>
             <field name = "timestamp" type = "float"></field>
 
