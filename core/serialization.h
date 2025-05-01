@@ -31,7 +31,7 @@ public:
     // }
 
     template <std::size_t messageLength>
-    inline antara_msg_t<messageLength> Serialize(std::uint8_t controlFlags, std::uint32_t groupID, std::uint32_t systemID, antara_payload_t const &payload)
+    inline antara_msg_t<messageLength> Serialize(std::uint8_t const &controlFlags, std::uint32_t const &groupID, std::uint32_t const &systemID, antara_payload_t const &payload, std::uint8_t const (&keys)[274])
     {
 
         antara_msg_t<messageLength> output;
@@ -57,17 +57,23 @@ public:
 
         WORD_TO_ARRAY(output, crc, 15 + payload.length);
 
-        if ((controlFlags & 0x03) == SIGNATURE_EXTENSION)
+        if constexpr (messageLength > 27)
         {
-            std::uint32_t hash[8];
-            std::uint16_t index = 19 + payload.length;
-
-            sha256(hash, output.msg, messageLength - 32);
-
-            for (std::size_t i = 0; i < 8; i++)
+            if ((controlFlags & 0x03) == SIGNATURE_EXTENSION)
             {
-                WORD_TO_ARRAY(output, hash[i], index);
-                index += 4;
+                std::uint32_t hash[8];
+                std::uint16_t index = 19 + payload.length;
+
+                std::transform(output.msg, output.msg + messageLength, keys, output.msg, [](std::uint8_t a, std::uint8_t b)
+                               { return a + b; });
+
+                sha256(hash, output.msg, messageLength - 32);
+
+                for (std::size_t i = 0; i < 2; i++)
+                {
+                    WORD_TO_ARRAY(output, hash[i], index);
+                    index += 4;
+                }
             }
         }
 

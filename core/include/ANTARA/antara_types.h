@@ -5,14 +5,9 @@
 
 #include "antara_version.h"
 
-enum antara_control_flags
+enum antara_extension_flags
 {
-
     SIGNATURE_EXTENSION = 0x01,
-    REQUEST_ACK = 0x04,
-    NACK = 0x8,
-    ACK = 0x0C,
-    FINISH = 0x30,
 
 };
 

@@ -16,11 +16,11 @@ static const std::uint8_t b64DecTable[] = {
 	80, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
 	41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 80, 80, 80, 80, 80};
 
-void b64_encode(std::uint8_t *dest, const std::uint8_t *src)
+void b64_encode(std::uint8_t *dest, std::uint8_t const *src)
 {
 	std::uint16_t i, j, len;
 
-	len = 4 * (std::strlen((const char *)src) / 3) + 1;
+	len = 4 * (std::strlen(reinterpret_cast<char const *>(src)) / 3) + 1;
 	j = 0;
 
 	for (i = 0; i < len; i += 3)

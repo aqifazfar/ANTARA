@@ -11,7 +11,7 @@ target_sources(antaralib PRIVATE
 install(FILES "include/ANTARA/Core" 
               "include/ANTARA/TCP" 
               "include/ANTARA/UDP" 
-        #       "include/ANTARA/Serial" 
+              "include/ANTARA/Serial" 
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ANTARA")
 
 include(GNUInstallDirs)

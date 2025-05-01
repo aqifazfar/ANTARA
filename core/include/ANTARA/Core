@@ -10,15 +10,16 @@ namespace Antara
     {
 
     private:
+        int status = 0;
+        int subs_msg_ID = 0;
+        antara_mode mode = UNICAST;
         Serialization serializer;
         Deserialization deserializer;
         std::uint32_t group_ID = 0;
         std::uint32_t system_ID = 0;
         std::uint32_t target_group_ID = 0;
         std::uint32_t target_system_ID = 0;
-        int status = 0;
-        int subs_msg_ID = 0;
-        antara_mode mode = UNICAST;
+        std::uint8_t _keys[274] = {};
 
         Core() = default;
         ~Core() = default;
@@ -44,10 +45,15 @@ namespace Antara
             system_ID = systemID;
         }
 
+        inline void Set_Keys(std::uint8_t (&keys)[274])
+        {
+            std::move(keys, keys + 274, _keys);
+        }
+
         template <std::uint16_t messageLength>
         inline antara_msg_t<messageLength> Pack(std::uint8_t const &controlFlags, antara_payload_t const &payload)
         {
-            return serializer.Serialize<messageLength>(controlFlags, group_ID, system_ID, payload);
+            return serializer.Serialize<messageLength>(controlFlags, group_ID, system_ID, payload, _keys);
         }
 
         template <std::uint16_t messageLength>

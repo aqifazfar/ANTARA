@@ -23,32 +23,43 @@ public:
     template <std::size_t messageLength>
     inline int Deserialize(std::uint32_t const &groupID, std::uint32_t const &systemID, antara_mode const &mode, std::uint16_t const &subsMessageID, antara_payload_t &output, antara_msg_t<messageLength> const &msgIn)
     {
-        if (crc32(msgIn.msg, messageLength - 32) != 0)
+        if constexpr (messageLength > 27)
         {
-            // Discard message
-            return MESSAGE_CORRUPTED;
-        }
-
-        // Check Signature
-        if ((msgIn[0] & 0x03) == SIGNATURE_EXTENSION)
-        {
-            std::uint32_t hash[8];
-            sha256(hash, msgIn.msg, messageLength - 32);
-
-            std::uint32_t index = 19 + msgIn[14];
-
-            for (std::size_t i = 0; i < 8; i++)
+            if (crc32(msgIn.msg, messageLength - 8) != 0)
             {
-                std::uint32_t temp;
-                temp = ARRAY_TO_WORD(msgIn, index);
+                // Discard message
+                return MESSAGE_CORRUPTED;
+            }
 
-                if (temp != hash[i])
+            // Check Signature
+            if ((msgIn[0] & 0x03) == SIGNATURE_EXTENSION)
+            {
+                std::uint32_t hash[8];
+                sha256(hash, msgIn.msg, messageLength - 32);
+
+                std::uint32_t index = 19 + msgIn[14];
+
+                for (std::size_t i = 0; i < 2; i++)
                 {
-                    // Discard message
-                    return 0;
-                }
+                    std::uint32_t temp;
+                    temp = ARRAY_TO_WORD(msgIn, index);
 
-                index += 4;
+                    if (temp != hash[i])
+                    {
+                        // Discard message
+                        return 0;
+                    }
+
+                    index += 4;
+                }
+            }
+        }
+        else
+        {
+            if (crc32(msgIn.msg, messageLength) != 0)
+            {
+                // Discard message
+                return 0;
             }
         }
 

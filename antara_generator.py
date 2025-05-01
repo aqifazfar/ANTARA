@@ -17,7 +17,7 @@ def generate_enum(messageName:str, enum:list):
 
 def generate_message_function(messageName:str,controlFlags:str,nodeID:int,componentID:int,messageID:int,length:int,field:list):
 
-    message_length = 15 + length + 4 + 32 if 'SIGNATURE_EXTENSION' in controlFlags else 0
+    message_length = 15 + length + 4 + 8 if 'SIGNATURE_EXTENSION' in controlFlags else 0
 
     def generate_pack_function():
 
@@ -132,7 +132,7 @@ def main(dialect_file:str, output_file:str = ''):
 
         msg_cflags = msg[2]
         for i in msg[1]:
-            msg_cflags += i 
+            msg_cflags += " | " + i 
 
         node_id = int(msg[3])
         component_id = int(msg[4])

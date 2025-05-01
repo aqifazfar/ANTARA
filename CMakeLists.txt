@@ -25,7 +25,6 @@ else()
 endif()
 
 add_subdirectory(core)
-add_subdirectory(core/antara-cli)
 
 if(ANTARA_BUILD_TESTS)
   message("ANTARA Tests Files will be build")

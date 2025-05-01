@@ -1,0 +1,81 @@
+
+#include "antara_types.h"
+#include <cerrno>
+#include <fcntl.h>
+#include <termios.h>
+#include <unistd.h>
+#include <cstring>
+class Serial
+{
+private:
+    int fd = 0;
+
+public:
+    Serial(char const *portName, std::uint32_t speed)
+    {
+        fd = open(portName, O_RDWR | O_NOCTTY | O_SYNC);
+
+        if (fd < 0)
+        {
+            std::cerr << "Error opening " << portName << ": " << std::strerror(errno) << std::endl;
+            return;
+        }
+
+        struct termios tty;
+        if (tcgetattr(fd, &tty) != 0)
+        {
+            std::cerr << "Error from tcgetattr(): " << std::strerror(errno) << std::endl;
+            return;
+        }
+
+        cfsetospeed(&tty, speed);
+        cfsetispeed(&tty, speed);
+
+        tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8 | ((CLOCAL | CREAD) & (~(PARENB | PARODD)) & (~CSTOPB) & (~CRTSCTS));
+        tty.c_iflag &= ~IGNBRK & ~(IXON | IXOFF | IXANY);
+        tty.c_lflag = 0;
+        tty.c_oflag = 0;
+        tty.c_cc[VMIN] = 0;
+        tty.c_cc[VTIME] = 5;
+
+        if (tcsetattr(fd, TCSANOW, &tty) != 0)
+        {
+            std::cerr << "Error from tcsetattr: " << std::strerror(errno) << std::endl;
+            return;
+        }
+    };
+    ~Serial()
+    {
+        close(fd);
+    };
+
+    template <std::size_t messageLength>
+    inline void Send(antara_msg_t<messageLength> msg)
+    {
+        if (write(fd, msg.msg, messageLength) != 0)
+        {
+            std::cout << "Error from write()" << std::endl;
+            return;
+        };
+        std::cout << "Sent\n";
+    }
+
+    template <std::size_t messageLength>
+    inline antara_msg_t<messageLength> Recv()
+    {
+        antara_msg_t<messageLength> msg = {};
+
+        if (read(fd, msg.msg, messageLength) != 0)
+        {
+            std::cout << "Error from read()" << std::endl;
+            return {0};
+        }
+        std::cout << "Received\n";
+        return msg;
+    }
+
+    inline int Get_Socket() const
+    {
+        return fd;
+    }
+};

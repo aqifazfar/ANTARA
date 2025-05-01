@@ -23,9 +23,12 @@ namespace Antara
 
     public:
         UDP();
-        ~UDP();
+        ~UDP()
+        {
+            close(fd);
+        };
 
-        int UDP_Server_Init(const char *port, const char *IPAddressOrHostName)
+        inline int UDP_Server_Init(const char *port, const char *IPAddressOrHostName)
         {
             struct addrinfo hints, *res;
             int status = 0;
@@ -76,7 +79,7 @@ namespace Antara
             return 0;
         }
 
-        int UDP_Client_Init(const char *port, const char *IPAddressOrHostName)
+        inline int UDP_Client_Init(const char *port, const char *IPAddressOrHostName)
         {
 
             struct addrinfo hints, *res;
@@ -127,27 +130,25 @@ namespace Antara
         }
 
         template <std::size_t messageLength>
-        int UDP_Transmit(antara_msg_t<messageLength> const &messageOut)
+        inline void UDP_Transmit(antara_msg_t<messageLength> const &messageOut)
         {
             if (sendto(fd, messageOut, messageLength, 0, p->ai_addr, p->ai_addrlen) < 0)
             {
                 std::perror("sendto() ");
-                return 1;
+                return;
             }
 
             std::cout << "Done Transmit\n";
-
-            return 0;
         }
         template <std::size_t messageLength>
-        antara_msg_t<messageLength> UDP_Recv()
+        inline antara_msg_t<messageLength> UDP_Recv()
         {
             antara_msg_t<messageLength> msg = {};
 
             socklen_t len;
             len = sizeof(Addr);
 
-            if (recvfrom(fd, msg, messageLength, 0, static_cast<struct sockaddr *>(&Addr), &len) < 0)
+            if (recvfrom(fd, msg, messageLength, 0, reinterpret_cast<struct sockaddr *>(&Addr), &len) < 0)
             {
                 std::perror("recvfrom() ");
                 return 1;
@@ -157,6 +158,11 @@ namespace Antara
 
             return msg;
         }
-    }
+
+        inline int Get_Socket() const
+        {
+            return fd;
+        }
+    };
 
 } // namespace Antara
